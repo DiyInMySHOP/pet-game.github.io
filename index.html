@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Live Pet Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 400px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-panel {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .disconnected {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+        }
+
+        .connecting {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .tiktok-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .connect-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff0050, #ff4081);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 80, 0.4);
+        }
+
+        .connect-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-section {
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+
+        .test-btn {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .test-rose { background: #ffb6c1; }
+        .test-galaxy { background: #dda0dd; }
+        .test-diamond { background: #add8e6; }
+        .test-rocket { background: #ffd700; }
+
+        .live-log {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .log-entry {
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+            background: white;
+        }
+
+        .log-gift { border-left-color: #4CAF50; }
+        .log-follow { border-left-color: #2196F3; }
+        .log-comment { border-left-color: #FF9800; }
+        .log-error { border-left-color: #f44336; }
+
+        /* เอาสไตล์เกมเดิมมา */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 182, 193, 0.3);
+            border-radius: 15px;
+        }
+
+        .coins {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+
+        .pet-area {
+            height: 200px;
+            background: linear-gradient(135deg, #a8e6cf, #dcedc8);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 3px solid #81c784;
+        }
+
+        .pet {
+            position: absolute;
+            font-size: 60px;
+            transition: all 0.5s ease;
+            cursor: pointer;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .pet:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .pet-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .pet-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #4a4a4a;
+        }
+
+        .status-bar {
+            background: #e0e0e0;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .status-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .happiness { background: linear-gradient(90deg, #ff9a9e, #fecfef); }
+        .hunger { background: linear-gradient(90deg, #a8edea, #fed6e3); }
+        .energy { background: linear-gradient(90deg, #ffecd2, #fcb69f); }
+
+        .pet-collection {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .collected-pets {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mini-pet {
+            font-size: 24px;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            filter: grayscale(50%);
+            transition: all 0.3s ease;
+        }
+
+        .mini-pet.owned {
+            filter: none;
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        .notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            opacity: 0;
+            scale: 0.5;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .notification.show {
+            opacity: 1;
+            scale: 1;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .pet.happy {
+            animation: bounce 1s ease-in-out;
+        }
+
+        .sparkle {
+            position: absolute;
+            color: gold;
+            font-size: 20px;
+            pointer-events: none;
+            animation: sparkle 1s ease-out forwards;
+        }
+
+        @keyframes sparkle {
+            0% {
+                opacity: 1;
+                transform: scale(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.5) rotate(180deg);
+            }
+        }
+
+        .viewer-count {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-panel {
+                width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #667eea;">🎮 TikTok Live Control</h3>
+            
+            <!-- Connection Status -->
+            <div class="connection-status disconnected" id="connectionStatus">
+                ❌ ไม่ได้เชื่อมต่อ
+            </div>
+
+            <!-- TikTok Username Input -->
+            <input type="text" class="tiktok-input" id="tiktokUsername" placeholder="ใส่ TikTok Username" value="">
+            <button class="connect-btn" id="connectBtn" onclick="connectToTikTok()">
+                🔴 เชื่อมต่อ TikTok Live
+            </button>
+
+            <!-- Viewer Info -->
+            <div class="viewer-count" id="viewerInfo">
+                👥 ผู้ชม: 0 | 💝 ของขวัญ: 0
+            </div>
+
+            <!-- Live Log -->
+            <div class="live-log" id="liveLog">
+                <div class="log-entry">🎮 รอการเชื่อมต่อ TikTok Live...</div>
+            </div>
+
+            <!-- Test Section -->
+            <div class="test-section">
+                <h4 style="margin-bottom: 10px;">🧪 ทดสอบของขวัญ:</h4>
+                <button class="test-btn test-rose" onclick="testGift('rose')">🌹 Rose Test</button>
+                <button class="test-btn test-galaxy" onclick="testGift('galaxy')">🌌 Galaxy Test</button>
+                <button class="test-btn test-diamond" onclick="testGift('diamond')">💎 Diamond Test</button>
+                <button class="test-btn test-rocket" onclick="testGift('rocket')">🚀 Rocket Test</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-item">
+                    <div>📊 เซสชั่น</div>
+                    <div id="sessionTime">00:00</div>
+                </div>
+                <div class="stat-item">
+                    <div>🎯 ของขวัญรวม</div>
+                    <div id="totalGifts">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Container -->
+        <div class="game-container">
+            <div class="header">
+                <div class="coins">💰 เหรียญ: <span id="coinCount">0</span></div>
+                <div style="font-size: 18px; font-weight: bold; color: #667eea;">
+                    🎮 Pet TikTok 
+                    <button onclick="toggleSound()" style="margin-left: 10px; border: none; background: none; font-size: 16px; cursor: pointer;" id="soundBtn">🔊</button>
+                </div>
+            </div>
+
+            <div class="pet-area" id="petArea">
+                <div class="pet" id="currentPet" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">🐱</div>
+            </div>
+
+            <div class="pet-info">
+                <div class="pet-name" id="petName">แมวน้อย มิโกะ</div>
+                <div style="margin-bottom: 5px;">❤️ ความสุข</div>
+                <div class="status-bar">
+                    <div class="status-fill happiness" id="happinessBar" style="width: 70%;"></div>
+                </div>
+                <div style="margin-bottom: 5px;">🍎 ความหิว</div>
+                <div class="status-bar">
+                    <div class="status-fill hunger" id="hungerBar" style="width: 60%;"></div>
+                </div>
+                <div style="margin-bottom: 5px;">⚡ พลังงาน</div>
+                <div class="status-bar">
+                    <div class="status-fill energy" id="energyBar" style="width: 80%;"></div>
+                </div>
+            </div>
+
+            <div class="pet-collection">
+                <div style="font-weight: bold; margin-bottom: 10px;">🏆 สะสมสัตว์เลี้ยง:</div>
+                <div class="collected-pets" id="petCollection">
+                    <div class="mini-pet owned">🐱</div>
+                    <div class="mini-pet">🐶</div>
+                    <div class="mini-pet">🐰</div>
+                    <div class="mini-pet">🦊</div>
+                    <div class="mini-pet">🐺</div>
+                    <div class="mini-pet">🦁</div>
+                    <div class="mini-pet">🐯</div>
+                    <div class="mini-pet">🐼</div>
+                </div>
+            </div>
+
+            <div class="notification" id="notification"></div>
+        </div>
+    </div>
+
+    <script>
+        // Audio System
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundEnabled = true;
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        function playSound(frequency, duration, type = 'sine', volume = 0.1) {
+            if (!soundEnabled) return;
+            
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playMelody(notes, duration = 0.2) {
+            notes.forEach((note, index) => {
+                setTimeout(() => playSound(note, duration, 'triangle', 0.08), index * duration * 1000);
+            });
+        }
+
+        // Sound effects
+        const sounds = {
+            coin: () => playSound(800, 0.1, 'square', 0.15),
+            happy: () => playMelody([523, 659, 784], 0.15),
+            gift: () => playMelody([440, 554, 659], 0.1),
+            newPet: () => playMelody([523, 659, 784, 1047], 0.2),
+            click: () => playSound(600, 0.05, 'square', 0.1),
+            magic: () => {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        playSound(800 + Math.random() * 400, 0.1, 'sine', 0.06);
+                    }, i * 50);
+                }
+            }
+        };
+
+        // Game State
+        let gameState = {
+            coins: 0,
+            happiness: 70,
+            hunger: 60,
+            energy: 80,
+            currentPet: {
+                emoji: '🐱',
+                name: 'แมวน้อย มิโกะ'
+            },
+            ownedPets: ['🐱'],
+            allPets: [
+                { emoji: '🐱', name: 'แมวน้อย มิโกะ' },
+                { emoji: '🐶', name: 'หมาน้อย โมโม' },
+                { emoji: '🐰', name: 'กระต่าย ลูลู' },
+                { emoji: '🦊', name: 'จิ้งจอก คิตสึเนะ' },
+                { emoji: '🐺', name: 'หมาป่า อาคิ' },
+                { emoji: '🦁', name: 'สิงโต ราจา' },
+                { emoji: '🐯', name: 'เสือ ทาโร่' },
+                { emoji: '🐼', name: 'แพนด้า เมย์เมย์' }
+            ]
+        };
+
+        // TikTok Live Connection
+        let tiktokConnection = null;
+        let isConnected = false;
+        let sessionStats = {
+            startTime: null,
+            totalGifts: 0,
+            viewers: 0
+        };
+
+        // TikTok Gift Mapping
+        const tiktokGiftMap = {
+            // ของขวัญราคาถูก -> rose
+            'rose': 'rose',
+            'perfume': 'rose',
+            'ice cream': 'rose',
+            'heart me': 'rose',
+            'thumbs up': 'rose',
+            'finger heart': 'rose',
+            
+            // ของขวัญราคากลาง -> galaxy  
+            'galaxy': 'galaxy',
+            'drama queen': 'galaxy',
+            'love bang': 'galaxy',
+            'magic wand': 'galaxy',
+            
+            // ของขวัญราคาแพง -> diamond
+            'diamond': 'diamond',
+            'diamond ring': 'diamond',
+            'sports car': 'diamond',
+            'yacht': 'diamond',
+            
+            // ของขวัญราคาแพงมาก -> rocket
+            'rocket': 'rocket',
+            'lion': 'rocket',
+            'universe': 'rocket',
+            'tiktok': 'rocket'
+        };
+
+        function connectToTikTok() {
+            const username = document.getElementById('tiktokUsername').value.trim();
+            
+            if (!username) {
+                alert('กรุณาใส่ TikTok Username');
+                return;
+            }
+
+            const connectBtn = document.getElementById('connectBtn');
+            const status = document.getElementById('connectionStatus');
+            
+            connectBtn.disabled = true;
+            connectBtn.textContent = '🔄 กำลังเชื่อมต่อ...';
+            status.className = 'connection-status connecting';
+            status.textContent = '🔄 กำลังเชื่อมต่อ...';
+            
+            // Simulate connection (ในจริงจะใช้ TikTok Live Connector)
+            setTimeout(() => {
+                // สำหรับ demo - สมมุติว่าเชื่อมต่อสำเร็จ
+                isConnected = true;
+                sessionStats.startTime = Date.now();
+                
+                connectBtn.textContent = '❌ ตัดการเชื่อมต่อ';
+                connectBtn.disabled = false;
+                connectBtn.onclick = disconnectTikTok;
+                
+                status.className = 'connection-status connected';
+                status.textContent = '✅ เชื่อมต่อแล้ว: @' + username;
+                
+                addLog(`🎉 เชื่อมต่อ @${username} สำเร็จ!`, 'log-gift');
+                
+                // เริ่ม demo events
+                startDemoEvents();
+                
+            }, 2000);
+        }
+
+        function disconnectTikTok() {
+            isConnected = false;
+            
+            const connectBtn = document.getElementById('connectBtn');
+            const status = document.getElementById('connectionStatus');
+            
+            connectBtn.textContent = '🔴 เชื่อมต่อ TikTok Live';
+            connectBtn.onclick = connectToTikTok;
+            
+            status.className = 'connection-status disconnected';
+            status.textContent = '❌ ไม่ได้เชื่อมต่อ';
+            
+            addLog('❌ ตัดการเชื่อมต่อแล้ว', 'log-error');
+            
+            // รีเซ็ตสถิติ
+            sessionStats = { startTime: null, totalGifts: 0, viewers: 0 };
+            updateStats();
+        }
+
+        // Demo Events (จำลองการได้รับของขวัญ)
+        function startDemoEvents() {
+            if (!isConnected) return;
+            
+            // สุ่มของขวัญจาก TikTok Live
+            const demoGifts = ['rose', 'perfume', 'galaxy', 'diamond', 'rocket'];
+            const demoUsers = ['user123', 'tiktokfan', 'petlover', 'gamer99', 'streamer'];
+            
+            setTimeout(() => {
+                if (!isConnected) return;
+                
+                const gift = demoGifts[Math.floor(Math.random() * demoGifts.length)];
+                const user = demoUsers[Math.floor(Math.random() * demoUsers.length)];
+                const count = Math.floor(Math.random() * 3) + 1;
+                
+                // จำลองการได้รับของขวัญ
+                handleTikTokGift({
+                    giftName: gift,
+                    username: user,
+                    repeatCount: count
+                });
+                
+                // จำลองผู้ชม
+                sessionStats.viewers = Math.floor(Math.random() * 1000) + 50;
+                updateStats();
+                
+                // ทำซ้ำ
+                startDemoEvents();
+                
+            }, Math.random() * 8000 + 3000); // สุ่ม 3-11 วินาที
+        }
+
+        // Handle TikTok Gift
+        function handleTikTokGift(data) {
+            const giftType = tiktokGiftMap[data.giftName.toLowerCase()] || 'rose';
+            const count = data.repeatCount || 1;
+            
+            addLog(`🎁 ${data.username} ส่ง ${data.giftName} x${count}`, 'log-gift');
+            
+            // เล่นของขวัญหลายครั้งถ้าเป็น combo
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    receiveGift(giftType);
+                    sessionStats.totalGifts++;
+                    updateStats();
+                }, i * 500);
+            }
+        }
+
+        // Test Functions
+        function testGift(giftType) {
+            const testUsers = ['TestUser', 'Demo', 'GameTester'];
+            const user = testUsers[Math.floor(Math.random() * testUsers.length)];
+            
+            addLog(`🧪 ทดสอบ: ${user} ส่ง ${giftType}`, 'log-gift');
+            receiveGift(giftType);
+            sessionStats.totalGifts++;
+            updateStats();
+        }
+
+        // Game Functions (เดิม)
+        function updateUI() {
+            document.getElementById('coinCount').textContent = gameState.coins;
+            document.getElementById('happinessBar').style.width = Math.min(gameState.happiness, 100) + '%';
+            document.getElementById('hungerBar').style.width = Math.min(gameState.hunger, 100) + '%';
+            document.getElementById('energyBar').style.width = Math.min(gameState.energy, 100) + '%';
+            document.getElementById('currentPet').textContent = gameState.currentPet.emoji;
+            document.getElementById('petName').textContent = gameState.currentPet.name;
+            
+            const petCollection = document.getElementById('petCollection');
+            petCollection.innerHTML = '';
+            gameState.allPets.forEach(pet => {
+                const miniPet = document.createElement('div');
+                miniPet.className = 'mini-pet';
+                if (gameState.ownedPets.includes(pet.emoji)) {
+                    miniPet.classList.add('owned');
+                    miniPet.onclick = () => switchPet(pet);
+                }
+                miniPet.textContent = pet.emoji;
+                petCollection.appendChild(miniPet);
+            });
+        }
+
+        function receiveGift(giftType) {
+            const petArea = document.getElementById('petArea');
+            const pet = document.getElementById('currentPet');
+            
+            let message = '';
+            let coinGain = 0;
+            
+            sounds.gift();
+            
+            switch(giftType) {
+                case 'rose':
+                    gameState.happiness = Math.min(gameState.happiness + 20, 100);
+                    gameState.hunger = Math.min(gameState.hunger + 10, 100);
+                    coinGain = 10;
+                    message = '🌹 ได้รับ Rose! ความสุขเพิ่มขึ้น!';
+                    break;
+                    
+                case 'galaxy':
+                    gameState.happiness = Math.min(gameState.happiness + 30, 100);
+                    gameState.hunger = Math.min(gameState.hunger + 30, 100);
+                    gameState.energy = Math.min(gameState.energy + 30, 100);
+                    coinGain = 25;
+                    message = '🌌 Galaxy! ทุกสถานะเพิ่มขึ้น!';
+                    createSparkles(petArea);
+                    sounds.magic();
+                    break;
+                    
+                case 'diamond':
+                    gameState.happiness = Math.min(gameState.happiness + 15, 100);
+                    coinGain = 100;
+                    message = '💎 Diamond! ได้เหรียญเยอะมาก!';
+                    break;
+                    
+                case 'rocket':
+                    const availablePets = gameState.allPets.filter(p => !gameState.ownedPets.includes(p.emoji));
+                    if (availablePets.length > 0) {
+                        const newPet = availablePets[Math.floor(Math.random() * availablePets.length)];
+                        gameState.ownedPets.push(newPet.emoji);
+                        message = `🚀 Rocket! ได้สัตว์ใหม่: ${newPet.name}!`;
+                        createMagicEffect(petArea);
+                        sounds.newPet();
+                        addLog(`🎉 ปลดล็อคสัตว์ใหม่: ${newPet.name}!`, 'log-gift');
+                    } else {
+                        coinGain = 200;
+                        message = '🚀 Rocket! ได้เหรียญโบนัส!';
+                        sounds.coin();
+                    }
+                    break;
+            }
+            
+            gameState.coins += coinGain;
+            
+            pet.classList.add('happy');
+            setTimeout(() => pet.classList.remove('happy'), 1000);
+            
+            if (coinGain > 0) {
+                createFloatingText(`+${coinGain} 💰`, pet);
+                sounds.coin();
+            }
+            
+            sounds.happy();
+            updateUI();
+            showNotification(message);
+        }
+
+        // Helper Functions
+        function switchPet(pet) {
+            gameState.currentPet = pet;
+            updateUI();
+            showNotification(`เปลี่ยนเป็น ${pet.name} แล้ว! 🎉`);
+            sounds.click();
+        }
+
+        function createFloatingText(text, element) {
+            const floatingText = document.createElement('div');
+            floatingText.className = 'floating-text';
+            floatingText.textContent = text;
+            floatingText.style.left = element.offsetLeft + 'px';
+            floatingText.style.top = element.offsetTop + 'px';
+            floatingText.style.color = '#ff6b35';
+            element.parentElement.appendChild(floatingText);
+            
+            setTimeout(() => floatingText.remove(), 2000);
+        }
+
+        function createSparkles(container) {
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.textContent = '✨';
+                    sparkle.style.left = Math.random() * container.offsetWidth + 'px';
+                    sparkle.style.top = Math.random() * container.offsetHeight + 'px';
+                    container.appendChild(sparkle);
+                    
+                    setTimeout(() => sparkle.remove(), 1000);
+                }, i * 100);
+            }
+        }
+
+        function createMagicEffect(container) {
+            const magicSymbols = ['⭐', '✨', '🌟', '💫'];
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const magic = document.createElement('div');
+                    magic.className = 'sparkle';
+                    magic.textContent = magicSymbols[Math.floor(Math.random() * magicSymbols.length)];
+                    magic.style.left = Math.random() * container.offsetWidth + 'px';
+                    magic.style.top = Math.random() * container.offsetHeight + 'px';
+                    magic.style.fontSize = '24px';
+                    container.appendChild(magic);
+                    
+                    setTimeout(() => magic.remove(), 1000);
+                }, i * 150);
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        function addLog(message, type = 'log-entry') {
+            const logContainer = document.getElementById('liveLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // ลบ log เก่าๆ (เก็บแค่ 50 รายการ)
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalGifts').textContent = sessionStats.totalGifts;
+            document.getElementById('viewerInfo').textContent = 
+                `👥 ผู้ชม: ${sessionStats.viewers} | 💝 ของขวัญ: ${sessionStats.totalGifts}`;
+            
+            if (sessionStats.startTime) {
+                const elapsed = Math.floor((Date.now() - sessionStats.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('sessionTime').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // Pet interaction
+        document.getElementById('currentPet').addEventListener('click', function() {
+            if (gameState.energy > 10) {
+                gameState.energy -= 10;
+                gameState.happiness = Math.min(gameState.happiness + 5, 100);
+                gameState.coins += 5;
+                
+                this.classList.add('happy');
+                setTimeout(() => this.classList.remove('happy'), 1000);
+                
+                createFloatingText('+5 💰', this);
+                sounds.happy();
+                sounds.coin();
+                updateUI();
+            } else {
+                sounds.click();
+                showNotification('สัตว์เลี้ยงเหนื่อยแล้ว! รอพลังงานฟื้น');
+            }
+        });
+
+        // Status decay over time
+        setInterval(() => {
+            if (gameState.hunger > 0) gameState.hunger -= 1;
+            if (gameState.happiness > 0 && gameState.hunger < 20) gameState.happiness -= 1;
+            if (gameState.energy < 100) gameState.energy += 2;
+            updateUI();
+        }, 3000);
+
+        // Update session timer
+        setInterval(updateStats, 1000);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUI();
+            addLog('🎮 เกมพร้อมใช้งาน! เชื่อมต่อ TikTok Live เพื่อเริ่ม', 'log-entry');
+        });
+
+        // Real TikTok Integration Code (สำหรับใช้จริง)
+        /*
+        // ใช้ TikTok Live Connector Library
+        async function connectToTikTokReal(username) {
+            try {
+                // npm install tiktok-live-connector
+                const { WebcastPushConnection } = require('tiktok-live-connector');
+                
+                tiktokConnection = new WebcastPushConnection(username);
+                
+                // เชื่อมต่อ
+                await tiktokConnection.connect();
+                
+                // ฟังเหตุการณ์ต่างๆ
+                tiktokConnection.on('connected', (state) => {
+                    addLog(`✅ เชื่อมต่อสำเร็จ! ผู้ชม: ${state.viewerCount}`, 'log-gift');
+                });
+                
+                // ของขวัญ
+                tiktokConnection.on('gift', (data) => {
+                    const giftType = tiktokGiftMap[data.giftName.toLowerCase()] || 'rose';
+                    const count = data.repeatCount || 1;
+                    
+                    addLog(`🎁 ${data.uniqueId} ส่ง ${data.giftName} x${count}`, 'log-gift');
+                    
+                    for (let i = 0; i < count; i++) {
+                        setTimeout(() => receiveGift(giftType), i * 300);
+                    }
+                });
+                
+                // ผู้ติดตาม
+                tiktokConnection.on('follow', (data) => {
+                    addLog(`➕ ${data.uniqueId} เริ่มติดตาม!`, 'log-follow');
+                    // โบนัสสำหรับ follower ใหม่
+                    gameState.coins += 50;
+                    showNotification(`🎉 ${data.uniqueId} ติดตาม! +50 เหรียญ`);
+                });
+                
+                // คอมเมนต์
+                tiktokConnection.on('comment', (data) => {
+                    addLog(`💬 ${data.uniqueId}: ${data.comment}`, 'log-comment');
+                });
+                
+                // อัพเดทจำนวนผู้ชม
+                tiktokConnection.on('roomUser', (data) => {
+                    sessionStats.viewers = data.viewerCount;
+                });
+                
+            } catch (error) {
+                addLog(`❌ ข้อผิดพลาด: ${error.message}`, 'log-error');
+            }
+        }
+        */
+    </script>
+</body>
+</html>
