@@ -897,6 +897,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateUI();
             addLog('🎮 เกมพร้อมใช้งาน! เชื่อมต่อ TikTok Live เพื่อเริ่ม', 'log-entry');
+            addLog('⌨️ สามารถใช้ปุ่ม W, A, D, X ได้แล้ว!', 'log-entry');
+            
+            // เตือนเรื่อง focus
+            let hasWarned = false;
+            document.addEventListener('blur', function() {
+                if (!hasWarned) {
+                    showNotification('⚠️ กดที่หน้าเว็บก่อนใช้ hotkeys');
+                    hasWarned = true;
+                }
+            });
         });
 
         // Real TikTok Integration Code (สำหรับใช้จริง)
