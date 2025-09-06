@@ -370,60 +370,7 @@
     </div>
 
     <div class="notification" id="notification"></div>
- <script>
-        // Audio System
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let soundEnabled = true;
-        
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
-        }
-        
-        function playSound(frequency, duration, type = 'sine', volume = 0.1) {
-            if (!soundEnabled) return;
-            
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = type;
-            
-            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration);
-        }
 
-        function playMelody(notes, duration = 0.2) {
-            notes.forEach((note, index) => {
-                setTimeout(() => playSound(note, duration, 'triangle', 0.08), index * duration * 1000);
-            });
-        }
-
-        // Sound effects
-        const sounds = {
-            coin: () => playSound(800, 0.1, 'square', 0.15),
-            happy: () => playMelody([523, 659, 784], 0.15),
-            gift: () => playMelody([440, 554, 659], 0.1),
-            newPet: () => playMelody([523, 659, 784, 1047], 0.2),
-            click: () => playSound(600, 0.05, 'square', 0.1),
-            magic: () => {
-                for (let i = 0; i < 5; i++) {
-                    setTimeout(() => {
-                        playSound(800 + Math.random() * 400, 0.1, 'sine', 0.06);
-                    }, i * 50);
-                }
-            }
-        };
     <script>
         let gameState = {
             coins: 0,
